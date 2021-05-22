@@ -36,9 +36,10 @@ namespace Generic {
 class EspressorEndPoint {
 
 public:
-    explicit EspressorEndPoint(Address address) : httpEndPoint(std::make_shared<Http::Endpoint>(address)) {}
+    explicit EspressorEndPoint(Address address)
+        : httpEndpoint(std::make_shared<Http::Endpoint>(address)) {}
 
-    void init(size_t threds = 3) {
+    void init(size_t thr = 2) {
         auto opts = Http::Endpoint::options().threads(static_cast<int>(thr));
         httpEndpoint->init(opts);
         // Server routes are loaded up
@@ -125,10 +126,12 @@ private:
 
         Guard guard(espressorLock);
 
-        int getResponse = espr.get(settingName);
+        int getResponse = espr.getSugar(settingName);
+
+        std::string getResponseStr = std::to_string(getResponse);
 
         if (getResponse != -1) {
-            response.send(Http::Code::Ok, settingName + " is " + valueSetting);
+            response.send(Http::Code::Ok, settingName + " is " + getResponseStr);
         } else {
             response.send(Http::Code::Not_Found, settingName + " was not found!");
         }
