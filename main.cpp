@@ -315,7 +315,7 @@ int main(int argc, char *argv[]) {
     cout << "Using " << thr << " threads" << endl;
 
     // Instance of the class that defines what the server can do.
-    EspressorEndpoint stats(addr);
+    EspressorEndPoint stats(addr);
 
     // Initialize and start the server
     stats.init(thr);
