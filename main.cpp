@@ -37,7 +37,7 @@ class EspressorEndPoint {
 
 public:
     explicit EspressorEndPoint(Address address)
-        : httpEndpoint(std::make_shared<Http::Endpoint>(address)) {}
+            : httpEndpoint(std::make_shared<Http::Endpoint>(address)) {}
 
     void init(size_t thr = 2) {
         auto opts = Http::Endpoint::options().threads(static_cast<int>(thr));
@@ -65,9 +65,9 @@ private:
         Routes::Post(router, "/settings/:settingName/:value", Routes::bind(&EspressorEndPoint::setSetting, this));
         Routes::Get(router, "/settings/:settingName/", Routes::bind(&EspressorEndPoint::getSetting, this));
 
-        /// americano/
-        Routes::Post(router, "/type/:typeName/:value", Routes::bind(&EspressorEndPoint::setType, this));
-        Routes::Get(router, "/type/:typeName/", Routes::bind(&EspressorEndPoint::getType, this));
+        /// type/americano/
+        Routes::Post(router, "/type/:typeName/", Routes::bind(&EspressorEndPoint::setType, this));
+        Routes::Get(router, "/type/", Routes::bind(&EspressorEndPoint::getType, this));
     }
 
     void doAuth(const Rest::Request &request, Http::ResponseWriter response) {
@@ -126,11 +126,16 @@ private:
             return;
         }
 
+        /// verificam optiunea
+        int getResponse;
+        if (settingName == "sugar")
+            getResponse = espr.getSugar();
+        else
+            getResponse = espr.getSize();
+
+        /// blocam
         Guard guard(espressorLock);
-
-        int getResponse = espr.getSugar(settingName);
-
-        std::string getResponseStr = std::to_string(getResponse);
+        std::string getResponseStr = std::to_string(getResponse); /// ptr a-l putea afisa trb sa fie string
 
         if (getResponse != -1) {
             response.send(Http::Code::Ok, settingName + " is " + getResponseStr);
@@ -139,9 +144,9 @@ private:
         }
     }
 
-    /// type
+    /// type/americano
     void setType(const Rest::Request &request, Http::ResponseWriter response) {
-        auto typeName = request.param(":typeName").as<std::int>();
+        auto typeName = request.param(":typeName").as<std::string>();
 
         Guard guard(espressorLock);
         int value;
@@ -149,11 +154,6 @@ private:
         if (typeName == "") {
             response.send(Http::Code::Not_Found, "type is not valid!");
             return;
-        }
-
-        if (request.hasParam(":value")) {
-            auto val = request.param(":value");
-            value = val.as<int>();
         }
 
         int setResponse = espr.setType(typeName);
@@ -210,24 +210,29 @@ private:
         }
 
         /// type
-        int setType(int value) {
+        int setType(string typeName) {
             //americano, cappuccino, latte_machiato, mocha
-            switch (value) {
-                case 1:
-                    coffeeType = americano;
-                    return 1;
-                case 2:
-                    coffeeType = cappuccino;
-                    return 1;
-                case 3:
-                    coffeeType = latte_machiato;
-                    return 1;
-                case 4:
-                    coffeeType = mocha;
-                    return 1;
-                default:
-                    return 0;
+
+            if (typeName == "americano") {
+                coffeeType = americano;
+                return 1;
             }
+
+            if (typeName == "cappuccino") {
+                coffeeType = cappuccino;
+                return 1;
+            }
+
+            if (typeName == "latte_machiato") {
+                coffeeType = latte_machiato;
+                return 1;
+            }
+
+            if (typeName == "mocha") {
+                coffeeType = mocha;
+                return 1;
+            }
+            return 0;
         }
 
         string getType() {
