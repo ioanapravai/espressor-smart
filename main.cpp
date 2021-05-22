@@ -34,90 +34,27 @@ namespace Generic {
 }
 
 class EspressorEndPoint {
+
+public:
+    explicit EspressorEndPoint(Address address) : httpEndPoint(std::make_shared<Http::Endpoint>(address)) {}
+
+    void init(size_t threds = 3) {
+        auto opts = Http::Endpoint::options().threads(static_cast<int>(thr));
+        httpEndpoint->init(opts);
+        // Server routes are loaded up
+        setupRoutes();
+    }
+
+    void start() {
+        httpEndpoint->setHandler(router.handler());
+        httpEndpoint->serveThreaded();
+    }
+
+    void stop() {
+        httpEndpoint->shutdown();
+    }
+
 private:
-
-    class Espressor {
-    private:
-        /*consideram deocamdata ca esspressorul are trei setari:
-            - setarea pentru nivelul de zahar: sugarSetting, cu valori intregi in intervalul [1, 5]
-            - setarea pentru marimea cafelei: sizeSetting, cu valori intregi in intervalul [1, 3]
-            -setarea tipului de cafea: [americano, cappuccino, latte machiato, mocha]
-        */
-
-        /// definirea setarilor
-        struct setting {
-            string name;
-            int value;
-        } sugarSetting, sizeSetting;
-
-        enum type {
-            americano = 1, cappuccino = 2, latte_machiato = 3, mocha = 4
-        } coffeeType;
-
-    public:
-        explicit Espressor() {}
-
-        /// sugar
-        int setSugar(int value) {
-            if (value < 1 || value > 5)
-                return 0;
-            sugarSetting.value = value;
-            return 1;
-        }
-
-        int getSugar() {
-            return sugarSetting.value;
-        }
-
-        /// size
-        int setSize(int value) {
-            if (value < 1 || value > 3)
-                return 0;
-            sizeSetting.value = value;
-            return 1;
-        }
-
-        int getSize() {
-            return sizeSetting.value;
-        }
-
-        /// type
-        int setType(int value) {
-            //americano, cappuccino, latte_machiato, mocha
-            switch (value) {
-                case 1:
-                    coffeeType = americano;
-                    return 1;
-                case 2:
-                    coffeeType = cappuccino;
-                    return 1;
-                case 3:
-                    coffeeType = latte_machiato;
-                    return 1;
-                case 4:
-                    coffeeType = mocha;
-                    return 1;
-                default:
-                    return 0;
-            }
-        }
-
-        string getType() {
-            switch (coffeeType) {
-                case americano:
-                    return "americano";
-                case cappuccino:
-                    return "cappuccino";
-                case latte_machiato:
-                    return "latte_machiato";
-                case mocha:
-                    return "mocha";
-                default:
-                    return "";
-            }
-        }
-    };
-
     void setupRoutes() {
         using namespace Rest;
         Routes::Get(router, "/ready", Routes::bind(&Generic::handleReady));
@@ -239,6 +176,89 @@ private:
 
     }
 
+    class Espressor {
+    public:
+        explicit Espressor() {}
+
+        /// sugar
+        int setSugar(int value) {
+            if (value < 1 || value > 5)
+                return 0;
+            sugarSetting.value = value;
+            return 1;
+        }
+
+        int getSugar() {
+            return sugarSetting.value;
+        }
+
+        /// size
+        int setSize(int value) {
+            if (value < 1 || value > 3)
+                return 0;
+            sizeSetting.value = value;
+            return 1;
+        }
+
+        int getSize() {
+            return sizeSetting.value;
+        }
+
+        /// type
+        int setType(int value) {
+            //americano, cappuccino, latte_machiato, mocha
+            switch (value) {
+                case 1:
+                    coffeeType = americano;
+                    return 1;
+                case 2:
+                    coffeeType = cappuccino;
+                    return 1;
+                case 3:
+                    coffeeType = latte_machiato;
+                    return 1;
+                case 4:
+                    coffeeType = mocha;
+                    return 1;
+                default:
+                    return 0;
+            }
+        }
+
+        string getType() {
+            switch (coffeeType) {
+                case americano:
+                    return "americano";
+                case cappuccino:
+                    return "cappuccino";
+                case latte_machiato:
+                    return "latte_machiato";
+                case mocha:
+                    return "mocha";
+                default:
+                    return "";
+            }
+        }
+
+    private:
+        /*consideram deocamdata ca esspressorul are trei setari:
+            - setarea pentru nivelul de zahar: sugarSetting, cu valori intregi in intervalul [1, 5]
+            - setarea pentru marimea cafelei: sizeSetting, cu valori intregi in intervalul [1, 3]
+            -setarea tipului de cafea: [americano, cappuccino, latte machiato, mocha]
+        */
+        /// definirea setarilor
+        struct setting {
+            string name;
+            int value;
+        } sugarSetting, sizeSetting;
+
+        enum type {
+            americano = 1, cappuccino = 2, latte_machiato = 3, mocha = 4
+        } coffeeType;
+
+
+    };
+
     /// blocam celelalte optiuni
     using Lock = std::mutex;
     using Guard = std::lock_guard<Lock>;
@@ -249,27 +269,6 @@ private:
 
     std::shared_ptr<Http::Endpoint> httpEndpoint;
     Rest::Router router;
-
-
-public:
-    explicit EspressorEndPoint(Address address) : httpEndPoint(std::make_shared<Http::Endpoint>(address)) {}
-
-    void init(size_t threds = 3) {
-        auto opts = Http::Endpoint::options().threads(static_cast<int>(thr));
-        httpEndpoint->init(opts);
-        // Server routes are loaded up
-        setupRoutes();
-    }
-
-    void start() {
-        httpEndpoint->setHandler(router.handler());
-        httpEndpoint->serveThreaded();
-    }
-
-    void stop() {
-        httpEndpoint->shutdown();
-    }
-
 };
 
 int main(int argc, char *argv[]) {
