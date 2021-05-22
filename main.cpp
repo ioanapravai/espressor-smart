@@ -35,16 +35,6 @@ namespace Generic {
 
 class EspressorEndPoint {
 private:
-    /// blocam celelalte optiuni
-    using Lock = std::mutex;
-    using Guard = std::lock_guard<Lock>;
-    Lock espressorLock;
-
-    // Instance of the microwave model
-    Espressor espr;
-
-    std::shared_ptr<Http::Endpoint> httpEndpoint;
-    Rest::Router router;
 
     class Espressor {
     private:
@@ -215,7 +205,7 @@ private:
         int value;
 
         if (typeName == "") {
-            response.send(Http:Code::Not_Found, "type is not valid!");
+            response.send(Http::Code::Not_Found, "type is not valid!");
             return;
         }
 
@@ -227,9 +217,9 @@ private:
         int setResponse = espr.setType(typeName);
 
         if (setResponse == 0) {
-            response.send(Http:Code::Not_Found, "value is not valid!");
+            response.send(Http::Code::Not_Found, "value is not valid!");
         } else {
-            response.send(Http:Code::Ok, typeName + " was set!");
+            response.send(Http::Code::Ok, typeName + " was set!");
         }
 
     }
@@ -248,6 +238,17 @@ private:
         }
 
     }
+
+    /// blocam celelalte optiuni
+    using Lock = std::mutex;
+    using Guard = std::lock_guard<Lock>;
+    Lock espressorLock;
+
+    // Instance of the microwave model
+    Espressor espr;
+
+    std::shared_ptr<Http::Endpoint> httpEndpoint;
+    Rest::Router router;
 
 
 public:
