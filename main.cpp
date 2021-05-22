@@ -35,6 +35,13 @@ namespace Generic {
 
 class EspressorEndPoint {
 private:
+    /// blocam celelalte optiuni
+    using Lock = std::mutex;
+    using Guard = std::lock_guard<Lock>;
+    Lock espressorLock;
+
+    // Instance of the microwave model
+    Espressor espr;
 
     std::shared_ptr<Http::Endpoint> httpEndpoint;
     Rest::Router router;
@@ -56,17 +63,6 @@ private:
         enum type {
             americano = 1, cappuccino = 2, latte_machiato = 3, mocha = 4
         } coffeeType;
-
-        /// blocam celelalte optiuni
-        using Lock = std::mutex;
-        using Guard = std::lock_guard<Lock>;
-        Lock espressorLock;
-
-        // Instance of the microwave model
-        Espressor espr;
-
-        std::shared_ptr<Http::Endpoint> httpEndpoint;
-        Rest::Router router;
 
     public:
         explicit Espressor() {}
