@@ -61,9 +61,11 @@ private:
         Routes::Get(router, "/ready", Routes::bind(&Generic::handleReady));
         Routes::Get(router, "/auth", Routes::bind(&EspressorEndPoint::doAuth, this));
 
+        /// sugar/size
         Routes::Post(router, "/settings/:settingName/:value", Routes::bind(&EspressorEndPoint::setSetting, this));
         Routes::Get(router, "/settings/:settingName/", Routes::bind(&EspressorEndPoint::getSetting, this));
 
+        /// americano/
         Routes::Post(router, "/type/:typeName/:value", Routes::bind(&EspressorEndPoint::setType, this));
         Routes::Get(router, "/type/:typeName/", Routes::bind(&EspressorEndPoint::getType, this));
     }
@@ -116,7 +118,7 @@ private:
     }
 
     // Endpoint to get one of the Espressor's settings.
-    void getSettings(const Rest::Request &request, Http::ResponseWriter response) {
+    void getSetting(const Rest::Request &request, Http::ResponseWriter response) {
         auto settingName = request.param(":settingName").as<std::string>();
 
         if (settingName != "sugar" || settingName != "size") {
@@ -139,7 +141,7 @@ private:
 
     /// type
     void setType(const Rest::Request &request, Http::ResponseWriter response) {
-        auto typeName = request.param(":typeName").as<std::string>();
+        auto typeName = request.param(":typeName").as<std::int>();
 
         Guard guard(espressorLock);
         int value;
@@ -273,6 +275,7 @@ private:
     std::shared_ptr<Http::Endpoint> httpEndpoint;
     Rest::Router router;
 };
+
 
 int main(int argc, char *argv[]) {
     Port port(9080);
