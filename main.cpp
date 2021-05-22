@@ -10,6 +10,8 @@
 #include <pistache/endpoint.h>
 #include <pistache/common.h>
 
+#include <signal.h>
+
 using namespace std;
 using namespace Pistache;
 
