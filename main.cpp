@@ -33,13 +33,13 @@ namespace Generic {
 
 }
 
-class EsspressorEndPoint {
+class EspressorEndPoint {
 private:
 
     std::shared_ptr<Http::Endpoint> httpEndpoint;
     Rest::Router router;
 
-    class Esspressor {
+    class Espressor {
     private:
         /*consideram deocamdata ca esspressorul are trei setari:
             - setarea pentru nivelul de zahar: sugarSetting, cu valori intregi in intervalul [1, 5]
@@ -60,15 +60,16 @@ private:
         /// blocam celelalte optiuni
         using Lock = std::mutex;
         using Guard = std::lock_guard<Lock>;
-        Lock esspressorLock;
+        Lock espressorLock;
 
-        Esspressor esspressor();
+        // Instance of the microwave model
+        Espressor espr;
 
         std::shared_ptr<Http::Endpoint> httpEndpoint;
         Rest::Router router;
 
     public:
-        explicit Esspressor() {}
+        explicit Espressor() {}
 
         /// sugar
         int setSugar(int value) {
@@ -134,13 +135,13 @@ private:
     void setupRoutes() {
         using namespace Rest;
         Routes::Get(router, "/ready", Routes::bind(&Generic::handleReady));
-        Routes::Get(router, "/auth", Routes::bind(&EsspressorEndPoint::doAuth, this));
+        Routes::Get(router, "/auth", Routes::bind(&EspressorEndPoint::doAuth, this));
 
-        Routes::Post(router, "/settings/:settingName/:value", Routes::bind(&EsspressorEndPoint::setSetting, this));
-        Routes::Get(router, "/settings/:settingName/", Routes::bind(&EsspressorEndPoint::getSetting, this));
+        Routes::Post(router, "/settings/:settingName/:value", Routes::bind(&EspressorEndPoint::setSetting, this));
+        Routes::Get(router, "/settings/:settingName/", Routes::bind(&EspressorEndPoint::getSetting, this));
 
-        Routes::Post(router, "/type/:typeName/:value", Routes::bind(&EsspressorEndPoint::setType, this));
-        Routes::Get(router, "/type/:typeName/", Routes::bind(&EsspressorEndPoint::getType, this));
+        Routes::Post(router, "/type/:typeName/:value", Routes::bind(&EspressorEndPoint::setType, this));
+        Routes::Get(router, "/type/:typeName/", Routes::bind(&EspressorEndPoint::getType, this));
     }
 
     void doAuth(const Rest::Request &request, Http::ResponseWriter response) {
@@ -153,7 +154,7 @@ private:
     }
 
     /// setting
-    // Endpoint to configure one of the Esspressor's settings.
+    // Endpoint to configure one of the Espressor's settings.
     void setSetting(const Rest::Request &request, Http::ResponseWriter response) {
         auto settingName = request.param(":settingName").as<std::string>();
 
@@ -163,9 +164,9 @@ private:
         }
 
         // This is a guard that prevents editing the same value by two concurent threads.
-        Guard guard(esspressorLock);
-        int value;
+        Guard guard(espressorLock);
 
+        int value;
         if (request.hasParam(":value")) {
             auto val = request.param(":value");
             value = val.as<int>();
@@ -175,20 +176,22 @@ private:
         int setResponse;
 
         if (settingName == "sugar")
-            setResponse = espressor.setSugar(value);
+            setResponse = espr.setSugar(value);
         else if (settingName == "size")
-            setResponse = espressor.setSize(value);
+            setResponse = espr.setSize(value);
 
+        /// convertim value inainte
+        std::string value_str = std::to_string(value);
         // Sending some confirmation or error response.
         if (setResponse == 1) {
-            response.send(Http::Code::Ok, settingName + " was set to " + value);
+            response.send(Http::Code::Ok, settingName + " was set to " + value_str);
         } else {
             response.send(Http::Code::Not_Found,
-                          settingName + " was not found and or '" + value + "' was not a valid value ");
+                          settingName + " was not found and or '" + value_str + "' was not a valid value ");
         }
     }
 
-    // Endpoint to get one of the Esspressor's settings.
+    // Endpoint to get one of the Espressor's settings.
     void getSettings(const Rest::Request &request, Http::ResponseWriter response) {
         auto settingName = request.param(":settingName").as<std::string>();
 
@@ -197,8 +200,9 @@ private:
             return;
         }
 
-        Guard guard(esspressorLock);
-        int getResponse = espressor.get(settingName);
+        Guard guard(espressorLock);
+
+        int getResponse = espr.get(settingName);
 
         if (getResponse != -1) {
             response.send(Http::Code::Ok, settingName + " is " + valueSetting);
@@ -211,7 +215,7 @@ private:
     void setType(const Rest::Request &request, Http::ResponseWriter response) {
         auto typeName = request.param(":typeName").as<std::string>();
 
-        Guard guard(esspressorLock);
+        Guard guard(espressorLock);
         int value;
 
         if (typeName == "") {
@@ -224,7 +228,7 @@ private:
             value = val.as<int>();
         }
 
-        int setResponse = espressor.setType(typeName);
+        int setResponse = espr.setType(typeName);
 
         if (setResponse == 0) {
             response.send(Http:Code::Not_Found, "value is not valid!");
@@ -237,8 +241,8 @@ private:
     void getType(const Rest::Request &request, Http::ResponseWriter response) {
         auto typeName = request.param(":typeName").as<std::string>();
 
-        Guard guard(esspressorLock);
-        string getResponse = espressor.getType();
+        Guard guard(espressorLock);
+        string getResponse = espr.getType();
 
         if (getResponse == "") {
             response.send(Http::Code::Not_Found, "coffee type is not valid!");
@@ -251,7 +255,7 @@ private:
 
 
 public:
-    explicit EsspressorEndPoint(Address address) : httpEndPoint(std::make_shared<Http::Endpoint>(address)) {}
+    explicit EspressorEndPoint(Address address) : httpEndPoint(std::make_shared<Http::Endpoint>(address)) {}
 
     void init(size_t threds = 3) {
         auto opts = Http::Endpoint::options().threads(static_cast<int>(thr));
@@ -277,7 +281,7 @@ int main(int argc, char *argv[]) {
 
     int threads = 3;
 
-    EsspressorEndPoint server(address);
+    EspressorEndPoint server(address);
     server.init(threads);
     server.start();
 
