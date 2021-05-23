@@ -103,7 +103,7 @@ private:
         string val = "";
         if (request.hasParam(":value")) {
             auto value = request.param(":value");
-            val = value.as<string>();
+            val = value.as<atd::string>();
         }
 
         // Setting the espressor's setting to value
@@ -115,6 +115,7 @@ private:
             response.headers()
                     .add<Header::Server>("pistache/0.1")
                     .add<Header::ContentType>(MIME(Text, Plain));
+
             response.send(Http::Code::Ok, settingName + " was set to " + val);
         } else {
             response.send(Http::Code::Not_Found,
