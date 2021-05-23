@@ -70,8 +70,8 @@ private:
         Routes::Post(router, "/settings/:settingName/:value", Routes::bind(&EspressorEndPoint::setSetting, this));
         Routes::Get(router, "/settings/:settingName/", Routes::bind(&EspressorEndPoint::getSetting, this));
 
-        /// TODO: Un mod pentru curățarea automată a aparatului
-        /// clean/all
+        /// Un mod pentru curățarea automată a aparatului
+        /// clean/all (sugar/size/aroma/type)
         Routes::Get(router, "/clean/:value", Routes::bind(&EspressorEndPoint::doClean, this));
 
     }
@@ -107,19 +107,11 @@ private:
             val = value.as<std::string>();
         }
 
-        if(value == "all"){
-            /// sugar
-            sugarSetting.name = "Blank";
-            sugarSetting.value = "None";
-            /// size
-            sugarSetting.name = "Blank";
-            sugarSetting.value = "None";
-
-            /// type
-            coffeeType = none;
-
-            /// TODO: aroma
-
+        if(val == "all"){
+            espr.cleanAll();
+        }
+        if(val == "sugar"){
+            espr.cleanSugar();
         }
 
         response.send(Http::Code::Ok, "Clean is Done!");
@@ -187,7 +179,7 @@ private:
         explicit Espressor() {}
 
         int set(std::string name, std::string val) {
-            int value = std::stoi(val);
+            int value = std::stoi(val); ///TODO
 
             if (name == "sugar") {
                 sugarSetting.name = name;
@@ -201,8 +193,18 @@ private:
             if (name == "size") {
                 sizeSetting.name = name;
 
-                if (value == "small" || value == "medium" || value == "large") {
-                    sizeSetting.value = value;
+                if (val == "small") {
+                    sizeSetting.value = 1;
+                    return 1;
+                }
+
+                if(val == "medium"){
+                    sizeSetting.value = 2;
+                    return 1;
+                }
+
+                if(val == "large") {
+                    sizeSetting.value = 3;
                     return 1;
                 }
             }
@@ -272,6 +274,29 @@ private:
             }
         }
 
+        void cleanSugar(){
+            sugarSetting.name = "Blank";
+            sugarSetting.value = 0;
+        }
+
+        void cleanSize(){
+            sizeSetting.name = "Blank";
+            sizeSetting.value = 0;
+        }
+
+        void cleanAll(){
+            /// sugar
+            cleanSugar();
+
+            /// size
+            cleanSize();
+
+            /// type
+            coffeeType = none;
+
+            /// TODO: aroma
+        }
+
     private:
         /*consideram deocamdata ca esspressorul are trei setari:
             - setarea pentru nivelul de zahar: sugarSetting, cu valori intregi in intervalul [1, 5]
@@ -285,7 +310,7 @@ private:
         } sugarSetting, sizeSetting;
 
         enum type {
-            americano = 1, cappuccino = 2, latte_machiato = 3, mocha = 4, espresso = 5
+            americano = 1, cappuccino = 2, latte_machiato = 3, mocha = 4, espresso = 5, none = 6
         } coffeeType;
 
     };
