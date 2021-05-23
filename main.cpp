@@ -69,7 +69,7 @@ private:
 
         /// type/americano/
         Routes::Post(router, "/type/:typeName/", Routes::bind(&EspressorEndPoint::setType, this));
-        Routes::Get(router, "/type/", Routes::bind(&EspressorEndPoint::getType, this));
+        Routes::Get(router, "/type", Routes::bind(&EspressorEndPoint::getType, this));
     }
 
     void doAuth(const Rest::Request &request, Http::ResponseWriter response) {
@@ -86,19 +86,8 @@ private:
     void setSetting(const Rest::Request& request, Http::ResponseWriter response) {
         auto settingName = request.param(":settingName").as<std::string>();
 
-//        if (settingName != "sugar" || settingName != "size") {
-//            response.send(Http::Code::Not_Found, "parameter is not valid!");
-//            return;
-//        }
-
         // This is a guard that prevents editing the same value by two concurent threads.
         Guard guard(espressorLock);
-
-//        int value;
-//        if (request.hasParam(":value")) {
-//            auto val = request.param(":value");
-//            value = val.as<int>();
-//        }
 
         string val = "";
         if (request.hasParam(":value")) {
@@ -109,7 +98,7 @@ private:
         // Setting the espressor's setting to value
 //        int setResponse = espr.set(settingName, val);
         int setResponse = 1;
-        
+
         // Sending some confirmation or error response.
         if (setResponse == 1) {
             using namespace Http;
@@ -146,42 +135,18 @@ private:
             response.send(Http::Code::Not_Found, settingName + " was not found");
         }
 
-//        if (settingName != "sugar" || settingName != "size") {
-//            response.send(Http::Code::Not_Found, "parameter is not valid!");
-//            return;
-//        }
-
-//        /// verificam optiunea
-//        int getResponse;
-//        if (settingName == "sugar")
-//            getResponse = espr.getSugar();
-//        else
-//            getResponse = espr.getSize();
-//
-//        /// blocam
-//        Guard guard(espressorLock);
-//        std::string getResponseStr = std::to_string(getResponse); /// ptr a-l putea afisa trb sa fie string
-//
-//        if (getResponse != -1) {
-//            response.send(Http::Code::Ok, settingName + " is " + getResponseStr);
-//        } else {
-//            response.send(Http::Code::Not_Found, settingName + " was not found!");
-//        }
-
-
     }
 
     /// type/americano
     void setType(const Rest::Request &request, Http::ResponseWriter response) {
         auto typeName = request.param(":typeName").as<std::string>();
 
-        Guard guard(espressorLock);
-        int value;
-
         if (typeName == "") {
             response.send(Http::Code::Not_Found, "type is not valid!");
             return;
         }
+
+        Guard guard(espressorLock);
 
         int setResponse = espr.setType(typeName);
 
@@ -190,11 +155,9 @@ private:
         } else {
             response.send(Http::Code::Ok, typeName + " was set!");
         }
-
     }
 
     void getType(const Rest::Request &request, Http::ResponseWriter response) {
-        auto typeName = request.param(":typeName").as<std::string>();
 
         Guard guard(espressorLock);
         string getResponse = espr.getType();
@@ -203,7 +166,12 @@ private:
             response.send(Http::Code::Not_Found, "coffee type is not valid!");
             return;
         } else {
-            response.send(Http::Code::Ok, "Selected coffee: " + typeName);
+            using namespace Http;
+            response.headers()
+                    .add<Header::Server>("pistache/0.1")
+                    .add<Header::ContentType>(MIME(Text, Plain));
+
+            response.send(Http::Code::Ok, "Selected coffee: " + getResponse);
         }
 
     }
@@ -246,7 +214,7 @@ private:
 
 
         /// type
-        int setType(string typeName) {
+        int setType(std::string typeName) {
             //americano, cappuccino, latte_machiato, mocha
 
             if (typeName == "americano") {
