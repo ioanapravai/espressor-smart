@@ -31,7 +31,7 @@
                 "_comment": "mai jos a schimbat Adrian",
                 "token-type":"string",
                 "byte-size":10,
-                "regex-rule": "[1-5]*",
+                "regex-rule": "[a-zA-Z]*",
                 "optional": false
             }
             ]
