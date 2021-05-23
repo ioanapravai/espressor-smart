@@ -103,7 +103,7 @@ private:
         string val = "";
         if (request.hasParam(":value")) {
             auto value = request.param(":value");
-            val = value.as<atd::string>();
+            val = value.as<std::string>();
         }
 
         // Setting the espressor's setting to value
