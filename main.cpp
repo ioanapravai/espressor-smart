@@ -63,11 +63,12 @@ private:
         Routes::Get(router, "/ready", Routes::bind(&Generic::handleReady));
         Routes::Get(router, "/auth", Routes::bind(&EspressorEndPoint::doAuth, this));
 
-        /// sugar/size
+        /// settings/sugar/4
+        /// settings/size/2
         Routes::Post(router, "/settings/:settingName/:value", Routes::bind(&EspressorEndPoint::setSetting, this));
         Routes::Get(router, "/settings/:settingName/", Routes::bind(&EspressorEndPoint::getSetting, this));
 
-        /// type/americano/
+        /// type/americano
         Routes::Post(router, "/type/:typeName/", Routes::bind(&EspressorEndPoint::setType, this));
         Routes::Get(router, "/type", Routes::bind(&EspressorEndPoint::getType, this));
     }
@@ -80,15 +81,16 @@ private:
         // Send the response
         response.send(Http::Code::Ok, "Auth Done!");
     }
-
-    /// setting
-    // Endpoint to configure one of the Espressor's settings.
-    void setSetting(const Rest::Request& request, Http::ResponseWriter response) {
+    /// ------------------------- BUFFER 1 -------------------------------------------------
+    /// settings
+    void setSetting(const Rest::Request &request, Http::ResponseWriter response) {
+        /// primul parametru sugar sau size
         auto settingName = request.param(":settingName").as<std::string>();
 
         // This is a guard that prevents editing the same value by two concurent threads.
         Guard guard(espressorLock);
 
+        /// al doilea parametru: cantitatea sau dimensiunea (numar)
         string val = "";
         if (request.hasParam(":value")) {
             auto value = request.param(":value");
@@ -96,8 +98,7 @@ private:
         }
 
         // Setting the espressor's setting to value
-//        int setResponse = espr.set(settingName, val);
-        int setResponse = 1;
+        int setResponse = espr.set(settingName, val);
 
         // Sending some confirmation or error response.
         if (setResponse == 1) {
@@ -115,10 +116,11 @@ private:
 
     // Endpoint to get one of the Espressor's settings.
     void getSetting(const Rest::Request &request, Http::ResponseWriter response) {
+        /// sugar/size
         auto settingName = request.param(":settingName").as<std::string>();
 
         Guard guard(espressorLock);
-
+        /// luam valoarea
         string valueSetting = espr.get(settingName);
 
         if (valueSetting != "") {
@@ -130,13 +132,13 @@ private:
                     .add<Header::ContentType>(MIME(Text, Plain));
 
             response.send(Http::Code::Ok, settingName + " is " + valueSetting);
-        }
-        else {
+        } else {
             response.send(Http::Code::Not_Found, settingName + " was not found");
         }
 
     }
 
+    /// ------------------------- BUFFER 2 ----------------------------------------------
     /// type/americano
     void setType(const Rest::Request &request, Http::ResponseWriter response) {
         auto typeName = request.param(":typeName").as<std::string>();
@@ -183,7 +185,7 @@ private:
         int set(std::string name, std::string val) {
             int value = std::stoi(val);
 
-            if(name == "sugar") {
+            if (name == "sugar") {
                 sugarSetting.name = name;
                 /// putem pune intre 1 si 5 pachetele de zahar
                 if (value >= 1 && value < 5) {
@@ -192,10 +194,10 @@ private:
                 }
             }
 
-            if(name == "size"){
+            if (name == "size") {
                 sizeSetting.name = name;
                 /// avem marimi intre 1 si 3
-                if (value >= 1 && value < 3){
+                if (value >= 1 && value < 3) {
                     sizeSetting.value = value;
                     return 1;
                 }
@@ -205,9 +207,9 @@ private:
         }
 
         string get(std::string name) {
-            if(name == "sugar")
+            if (name == "sugar")
                 return std::to_string(sugarSetting.value);
-            if(name == "size")
+            if (name == "size")
                 return std::to_string(sizeSetting.value);
             return "";
         }
@@ -281,7 +283,7 @@ private:
     // Instance of the microwave model
     Espressor espr;
 
-    std::shared_ptr<Http::Endpoint> httpEndpoint;
+    std::shared_ptr <Http::Endpoint> httpEndpoint;
     Rest::Router router;
 };
 
@@ -327,12 +329,9 @@ int main(int argc, char *argv[]) {
     // Code that waits for the shutdown sinal for the server
     int signal = 0;
     int status = sigwait(&signals, &signal);
-    if (status == 0)
-    {
+    if (status == 0) {
         std::cout << "received signal " << signal << std::endl;
-    }
-    else
-    {
+    } else {
         std::cerr << "sigwait returns " << status << std::endl;
     }
 
