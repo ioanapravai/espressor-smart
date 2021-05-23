@@ -69,6 +69,6 @@ On a successful run, there will be an output in the terminal containing the numb
 ## Testing
 Testing is done using the Postman tool.
 
-- For a POST request to http://localhost:9080/settings/sugar/2, the response should be "sugar was set to 2".
+- For a **POST** request to ```http://localhost:9080/settings/sugar/2```, the response should be "sugar was set to 2".
 
-- For a GET request to http://localhost:9080/settings/sugar, the response should be "sugar is 2".
+- For a **GET** request to ```http://localhost:9080/settings/sugar```, the response should be "sugar is 2".
