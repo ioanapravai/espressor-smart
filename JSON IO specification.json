@@ -29,7 +29,7 @@
                 "name":"Espressor option parameter value",
                 "description": "Parameter value for the setting chosen",
                 "_comment": "mai jos a schimbat Adrian",
-                "token-type":"integer",
+                "token-type":"string",
                 "byte-size":10,
                 "regex-rule": "[1-5]*",
                 "optional": false
