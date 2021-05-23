@@ -111,6 +111,10 @@ private:
 
         // Sending some confirmation or error response.
         if (setResponse == 1) {
+            using namespace Http;
+            response.headers()
+                    .add<Header::Server>("pistache/0.1")
+                    .add<Header::ContentType>(MIME(Text, Plain));
             response.send(Http::Code::Ok, settingName + " was set to " + val);
         } else {
             response.send(Http::Code::Not_Found,
