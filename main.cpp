@@ -78,38 +78,37 @@ private:
         // In the response object, it adds a cookie regarding the communications language.
         response.cookies().add(Http::Cookie("lang", "en-US"));
         // Send the response
-        response.send(Http::Code::Ok);
+        response.send(Http::Code::Ok, "Auth Done!");
     }
 
     /// setting
     // Endpoint to configure one of the Espressor's settings.
-    void setSetting(const Rest::Request &request, Http::ResponseWriter response) {
+    void setSetting(const Rest::Request& request, Http::ResponseWriter response) {
         auto settingName = request.param(":settingName").as<std::string>();
 
-        if (settingName != "sugar" || settingName != "size") {
-            response.send(Http::Code::Not_Found, "parameter is not valid!");
-            return;
-        }
+//        if (settingName != "sugar" || settingName != "size") {
+//            response.send(Http::Code::Not_Found, "parameter is not valid!");
+//            return;
+//        }
 
         // This is a guard that prevents editing the same value by two concurent threads.
         Guard guard(espressorLock);
 
-        int value;
+//        int value;
+//        if (request.hasParam(":value")) {
+//            auto val = request.param(":value");
+//            value = val.as<int>();
+//        }
+
+        string val = "";
         if (request.hasParam(":value")) {
-            auto val = request.param(":value");
-            value = val.as<int>();
+            auto value = request.param(":value");
+            val = value.as<string>();
         }
 
-        // Setting the microwave's setting to value
-        int setResponse;
+        // Setting the espressor's setting to value
+        int setResponse = expr.set(settingName, val);
 
-        if (settingName == "sugar")
-            setResponse = espr.setSugar(value);
-        else if (settingName == "size")
-            setResponse = espr.setSize(value);
-
-        /// convertim value inainte
-        std::string value_str = std::to_string(value);
         // Sending some confirmation or error response.
         if (setResponse == 1) {
             response.send(Http::Code::Ok, settingName + " was set to " + value_str);
@@ -123,27 +122,47 @@ private:
     void getSetting(const Rest::Request &request, Http::ResponseWriter response) {
         auto settingName = request.param(":settingName").as<std::string>();
 
-        if (settingName != "sugar" || settingName != "size") {
-            response.send(Http::Code::Not_Found, "parameter is not valid!");
-            return;
-        }
-
-        /// verificam optiunea
-        int getResponse;
-        if (settingName == "sugar")
-            getResponse = espr.getSugar();
-        else
-            getResponse = espr.getSize();
-
-        /// blocam
         Guard guard(espressorLock);
-        std::string getResponseStr = std::to_string(getResponse); /// ptr a-l putea afisa trb sa fie string
 
-        if (getResponse != -1) {
-            response.send(Http::Code::Ok, settingName + " is " + getResponseStr);
-        } else {
-            response.send(Http::Code::Not_Found, settingName + " was not found!");
+        string valueSetting = espr.get(settingName);
+
+        if (valueSetting != "") {
+
+            // In this response I also add a couple of headers, describing the server that sent this response, and the way the content is formatted.
+            using namespace Http;
+            response.headers()
+                    .add<Header::Server>("pistache/0.1")
+                    .add<Header::ContentType>(MIME(Text, Plain));
+
+            response.send(Http::Code::Ok, settingName + " is " + valueSetting);
         }
+        else {
+            response.send(Http::Code::Not_Found, settingName + " was not found");
+        }
+
+//        if (settingName != "sugar" || settingName != "size") {
+//            response.send(Http::Code::Not_Found, "parameter is not valid!");
+//            return;
+//        }
+
+//        /// verificam optiunea
+//        int getResponse;
+//        if (settingName == "sugar")
+//            getResponse = espr.getSugar();
+//        else
+//            getResponse = espr.getSize();
+//
+//        /// blocam
+//        Guard guard(espressorLock);
+//        std::string getResponseStr = std::to_string(getResponse); /// ptr a-l putea afisa trb sa fie string
+//
+//        if (getResponse != -1) {
+//            response.send(Http::Code::Ok, settingName + " is " + getResponseStr);
+//        } else {
+//            response.send(Http::Code::Not_Found, settingName + " was not found!");
+//        }
+
+
     }
 
     /// type/americano
@@ -187,29 +206,38 @@ private:
     public:
         explicit Espressor() {}
 
-        /// sugar
-        int setSugar(int value) {
-            if (value < 1 || value > 5)
-                return 0;
-            sugarSetting.value = value;
-            return 1;
+        int set(std::string name, std::string val) {
+            int value = std::stoi(val);
+
+            if(name = "sugar") {
+                sugarSetting.name = name;
+                /// putem pune intre 1 si 5 pachetele de zahar
+                if (value >= 1 && value < 5) {
+                    sugarSetting.value = value;
+                    return 1;
+                }
+            }
+
+            if(name == "size"){
+                sizeSetting.name = name;
+                /// avem marimi intre 1 si 3
+                if (value >= 1 && value < 3){
+                    sizeSetting.value = value;
+                    return 1;
+                }
+            }
+            return 0;
+
         }
 
-        int getSugar() {
-            return sugarSetting.value;
+        string get(std::string name) {
+            if(name == "sugar")
+                return std::to_string(sugarSetting.value);
+            if(name == "size")
+                return std::to_string(sizeSetting.value);
+            return "";
         }
 
-        /// size
-        int setSize(int value) {
-            if (value < 1 || value > 3)
-                return 0;
-            sizeSetting.value = value;
-            return 1;
-        }
-
-        int getSize() {
-            return sizeSetting.value;
-        }
 
         /// type
         int setType(string typeName) {
@@ -260,7 +288,7 @@ private:
         */
         /// definirea setarilor
         struct setting {
-            string name;
+            std::string name;
             int value;
         } sugarSetting, sizeSetting;
 
