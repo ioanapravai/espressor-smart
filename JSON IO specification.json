@@ -6,10 +6,11 @@
         "1":{
             "token-delimitators": "",
             "protocol": "HTTP",
-            "prefix": "curl -XPOST 'http://127.0.0.1:8080/'",
+            "_comment": "mai jos a schimbat Adrian",
+            "prefix": "curl -XPOST 'http://127.0.0.1:9080/'",
             "buffer-tokens":[
             {
-                "name":"Espressor options",
+                "name":"Espressor settings",
                 "description":"",
                 "token-type":"string", 
                 "byte-size":10, 
@@ -17,7 +18,7 @@
                 "optional": false
             },
             {
-                "name":"Espressor option parameter key",
+                "name":"Espressor settings parameter (size or sugar)",
                 "description": "Parameter key for the setting chosen",
                 "token-type":"string",
                 "byte-size":10,
@@ -27,22 +28,22 @@
             {
                 "name":"Espressor option parameter value",
                 "description": "Parameter value for the setting chosen",
-                "token-type":"string",
+                "_comment": "mai jos a schimbat Adrian",
+                "token-type":"integer",
                 "byte-size":10,
-                "regex-rule": "[a-zA-Z]*",
+                "regex-rule": "[1-5]*",
                 "optional": false
             }
             ]
-        }
-    },
-    "output-buffers":{
-        "1":{
+        },
+        "2":{
             "token-delimitators": "",
             "protocol": "HTTP",
-            "prefix": "curl -XGET 'http://127.0.0.1:8080/'",
+            "_comment": "mai jos a schimbat Adrian",
+            "prefix": "curl -XPOST 'http://127.0.0.1:9080/'",
             "buffer-tokens":[
             {
-                "name":"Espressor options",
+                "name":"Espressor type",
                 "description":"",
                 "token-type":"string", 
                 "byte-size":10, 
@@ -50,12 +51,57 @@
                 "optional": false
             },
             {
-                "name":"Espressor options parameter",
-                "description": "Parameters for the setting chosen",
+                "name":"Espressor option parameter",
+                "description": "The type of the choosen coffee: americano, cappuccino, latte_machiato or mocha",
                 "token-type":"string",
                 "byte-size":10,
                 "regex-rule": "[a-zA-Z]*",
-                "optional": true
+                "optional": false
+            }
+            ]
+        }
+
+        
+    },
+    "output-buffers":{
+        "1":{
+            "token-delimitators": "",
+            "protocol": "HTTP",
+            "_comment": "mai jos a schimbat Adrian",
+            "prefix": "curl -XGET 'http://127.0.0.1:9080/'",
+            "buffer-tokens":[
+            {
+                "name":"Espressor settings",
+                "description":"",
+                "token-type":"string", 
+                "byte-size":10, 
+                "regex-rule": "[a-zA-Z]*",
+                "optional": false
+            },
+            {
+                "name":"Espressor settings parameter",
+                "description": "Parameters for the setting chosen: size or sugar",
+                "token-type":"string",
+                "byte-size":10,
+                "regex-rule": "[a-zA-Z]*",
+                "_comment": "mai jos a schimbat Adrian",
+                "optional": false
+            }
+            ]
+        },
+        "2":{
+            "token-delimitators": "",
+            "protocol": "HTTP",
+            "_comment": "mai jos a schimbat Adrian",
+            "prefix": "curl -XGET 'http://127.0.0.1:9080/'",
+            "buffer-tokens":[
+            {
+                "name":"Espressor type",
+                "description":"",
+                "token-type":"string", 
+                "byte-size":10, 
+                "regex-rule": "[a-zA-Z]*",
+                "optional": false
             }
             ]
         }
