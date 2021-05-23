@@ -107,8 +107,9 @@ private:
         }
 
         // Setting the espressor's setting to value
-        int setResponse = espr.set(settingName, val);
-
+//        int setResponse = espr.set(settingName, val);
+        int setResponse = 1;
+        
         // Sending some confirmation or error response.
         if (setResponse == 1) {
             using namespace Http;
