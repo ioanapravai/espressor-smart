@@ -107,14 +107,14 @@ private:
         }
 
         // Setting the espressor's setting to value
-        int setResponse = expr.set(settingName, val);
+        int setResponse = espr.set(settingName, val);
 
         // Sending some confirmation or error response.
         if (setResponse == 1) {
-            response.send(Http::Code::Ok, settingName + " was set to " + value_str);
+            response.send(Http::Code::Ok, settingName + " was set to " + val);
         } else {
             response.send(Http::Code::Not_Found,
-                          settingName + " was not found and or '" + value_str + "' was not a valid value ");
+                          settingName + " was not found and or '" + val + "' was not a valid value ");
         }
     }
 
@@ -209,7 +209,7 @@ private:
         int set(std::string name, std::string val) {
             int value = std::stoi(val);
 
-            if(name = "sugar") {
+            if(name == "sugar") {
                 sugarSetting.name = name;
                 /// putem pune intre 1 si 5 pachetele de zahar
                 if (value >= 1 && value < 5) {
